@@ -108,6 +108,7 @@ tbm.placetbm = function(pos, fuel)
 	meta:set_string("formspec",
 		"size[8,9]"..
 		"list[current_name;main;0,0;1,4;]"..
+		"background[0,0;8,9;tbm_gui.png]"..
 		"item_image[1,0;1,1;tbm:coke]"..
 		"image[1,1;1,1;default_cobble.png]"..
 		"item_image[1,2;1,1;default:torch]"..
@@ -306,7 +307,7 @@ minetest.register_node("tbm:tbm", {
 	groups = {cracky=1},
 	on_construct = function(pos)
 		tbm.placetbm(pos, "0")
-		minetest.after(10, function()
+		minetest.after(6, function()
 			tbm.drill(pos)
 		end)
 	end,
@@ -317,7 +318,7 @@ minetest.register_node("tbm:tbm", {
 	end,
 	on_metadata_inventory_put = function(pos, listname, index, stack, player)
 		if listname == "main" then
-		  minetest.after(10, function()
+		  minetest.after(6, function()
 			  tbm.drill(pos)
 		  end)
 	  end
@@ -341,7 +342,7 @@ tbm.drill = function(pos)
 	if fuel == nil then
 		fuel = 0
 	end
-	-- check fuel, if below 1, grab a coal if coal > 0 else, do nothing
+	-- check fuel, if below 1, grab a coal coke if coal coke > 0 else, do nothing
 	if fuel == 0 then
 		if cokecount > 0 then
 			fuel = 3
@@ -389,7 +390,44 @@ tbm.drill = function(pos)
 		meta:set_string("fuel", "0")
 	end
 	--play sound
-         minetest.sound_play("tbm", {pos = pos, gain = 1.0, max_hear_distance = 10,})
+         minetest.sound_play("tbm", {pos = pos, gain = 5.0, max_hear_distance = 10,})
+if (fuel > 0) and (cobblecount > 2) and (railcount < 1) and (torchcount > 0) then
+		fuel = fuel - 1
+		-- break nodes ahead of the machine
+		local addcobble = tbm.breakstones(pos, facing)
+		-- put cobble to make bridges
+		tbm.placecobble(pos, facing)
+		cobblecount = cobblecount - 3
+		if cobblecount < 99 then
+			cobblecount = cobblecount + addcobble
+		end
+		if fuel == 0 then
+			if torchcount > 0 then
+				tbm.placetorch(pos, facing)
+				torchcount = torchcount - 1
+			end
+		end
+		-- create new TBM at the new position 
+		minetest.add_node(newpos, { name="tbm:tbm", param1=lightcount, param2=facing })
+		-- create inventory and other meta data at the new position
+		tbm.placetbm(newpos, tostring(fuel))
+		-- move tbm stack to the new position
+		tbm.setstackcount(newpos, "tbm:coke", cokecount)
+		tbm.setstackcount(newpos, "default:cobble", cobblecount)
+		tbm.setstackcount(newpos, "default:torch", torchcount)
+		tbm.setstackcount(newpos, "default:rail", railcount)
+		
+		local list = inv:get_list("inv")
+		local newmeta = minetest.get_meta(newpos)
+		local inv = newmeta:get_inventory()
+		inv:set_list("inv", list)
+		-- remove tbm from old position
+		minetest.remove_node(pos)
+	else
+		meta:set_string("fuel", "0")
+	end
+	--play sound
+         minetest.sound_play("tbm", {pos = pos, gain = 5.0, max_hear_distance = 10,})
 end
 
 minetest.register_node("tbm:metal_plate", {
