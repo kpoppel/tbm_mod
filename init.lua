@@ -554,3 +554,29 @@ minetest.register_craft({
         {'steel:plate_soft', 'default:chest', 'steel:plate_soft'},
     }
 })
+
+
+minetest.register_tool("tbm:pick_carbon", {
+	description = "Carbon-Diamond Pickaxe",
+	inventory_image = "tbm_carbon_pick.png",
+	tool_capabilities = {
+		full_punch_interval = 0.00005,
+		max_drop_level=3,
+		groupcaps={
+			cracky = {times={[1]=0.00005, [2]=0.00005, [3]=0.00005}, uses=200000000000, maxlevel=3},
+			crumbly = {times={[1]=0.00005, [2]=0.00005, [3]=0.00005}, uses=200000000000, maxlevel=3},
+			choppy = {times={[1]=0.00005, [2]=0.00005, [3]=0.00005}, uses=200000000000, maxlevel=3},
+			snappy = {times={[1]=0.00005, [2]=0.00005, [3]=0.00005}, uses=200000000000, maxlevel=3},
+		},
+		damage_groups = {fleshy=12},
+	},
+})
+
+minetest.register_craft({
+    output = 'tbm:pick_carbon',
+    recipe = {
+        {'default:coal_lump', 'default:diamond', 'default:coal_lump'},
+        {'', 'default:stick', ''},
+        {'', 'default:stick', ''},
+    }
+})
