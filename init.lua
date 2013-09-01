@@ -1,4 +1,4 @@
--- a tunnel boring machine
+-- a Tunnel Boring Machine
 
 tbm = {}
 
@@ -108,13 +108,13 @@ tbm.placetbm = function(pos, fuel)
 	meta:set_string("formspec",
 		"size[8,9]"..
 		"list[current_name;main;0,0;1,4;]"..
-		"image[1,0;1,1;tbm_coke.png]"..
-		"image[1,1;1,1;tbm_floor.png]"..
-		"image[1,2;1,1;default_torch.png]"..
-		"image[1,3;1,1;default_rail.png]"..
+		"item_image[1,0;1,1;tbm:coke]"..
+		"image[1,1;1,1;default_cobble.png]"..
+		"item_image[1,2;1,1;default:torch]"..
+		"item_image[1,3;1,1;default:rail]"..
 		"list[current_name;inv;2,0;6,4;]"..
 		"list[current_player;main;0,5;8,4;]")
-	meta:set_string("infotext", "Tunnel Boring Machine - " .. fuel)
+	meta:set_string("infotext", "Tunnel Boring Machine")
 	meta:set_string("fuel", fuel)
 	local inv = meta:get_inventory()
 	inv:set_size("main", 1*4)
@@ -186,7 +186,7 @@ tbm.findstack = function(inv, name)
 end
 
 tbm.getstackcount = function(pos, name)
-	-- will return the ammount of name in all stacks at position pos
+	-- will return the amount of name in all stacks at position pos
 	local h = 0
 	local inv = minetest.get_meta(pos):get_inventory()
 	local found = 0
@@ -236,7 +236,7 @@ tbm.breakstones = function(pos, facing)
 					tbm.dropitem(pos, "default:mese")
 				else
 					local dropped = ItemStack({name=current.name}):get_definition().drop
-					if dropped ~= "tbm:floor" then
+					if dropped ~= "default:cobble" then
 						tbm.dropitem(pos, dropped)
 					else
 						tbm.dropitem(pos, dropped)
@@ -259,7 +259,7 @@ tbm.placecobble = function(pos, facing)
 		ppos.x = pos.x + box[tbm.rowbelownewpos][i].X
 		ppos.y = pos.y + box[tbm.rowbelownewpos][i].Y
 		ppos.z = pos.z + box[tbm.rowbelownewpos][i].Z
-		minetest.add_node(ppos, { name = "tbm:floor" })
+		minetest.add_node(ppos, { name = "default:cobble" })
 	end
 end
 
@@ -275,7 +275,6 @@ end
 
 tbm.placetrack = function(pos, facing)
 	-- places a track behind the machine
-	-- checks if carts mod is present
 	local ppos = tbm.findoldpos(pos, facing)
 	minetest.place_node(ppos, { name = "default:rail" } )
 end
@@ -286,7 +285,7 @@ minetest.register_node("tbm:tbm", {
                            "tbm_side.png", 
                            "tbm_side.png", 
                            "tbm_side.png", 
-                           "tbm_side.png^tbm_front.png",
+                           {name="tbm_front_animated.png", animation={type="vertical_frames", aspect_w=16, aspect_h=16, length=0.6}},
                            "tbm_side.png"},
 	paramtype = "light",
 	inventory_image = "tbm_inv.png",
@@ -297,15 +296,14 @@ minetest.register_node("tbm:tbm", {
 	node_box = {
 	type = "fixed",
 	fixed = {
-		{-1.500000,-0.500000,-1.500000,1.500000,2.500000,0.500000}, --front
+		{-1.500000,-0.500000,-0.500000,1.500000,2.500000,0.500000}, --front
 		{-1.500000,-0.500000,-0.500000,-1.300000,2.500000,-4.500000}, --left
 		{-1.500000,2.300000,-0.500000,1.500000,2.500000,-4.500000}, --top
 		{1.300000,-0.500000,-0.500000,1.500000,2.500000,-4.500000}, --right
 		{-1.500000,-0.500000,-0.500000,1.500000,-0.300000,-4.500000}, --bottom
 		},
 	},
-	groups = {snappy=2,choppy=2,cracky=2,oddly_breakable_by_hand=2
-	},
+	groups = {cracky=1},
 	on_construct = function(pos)
 		tbm.placetbm(pos, "0")
 		minetest.after(10, function()
@@ -331,8 +329,8 @@ tbm.drill = function(pos)
 	local lightcount = minetest.get_node(pos).param1
 	local newpos = tbm.findnewpos(pos, facing)
 	local oldpos = tbm.findoldpos(pos, facing)
-	local coalcount = tbm.getstackcount(pos, "tbm:coke")
-	local cobblecount = tbm.getstackcount(pos, "tbm:floor")
+	local cokecount = tbm.getstackcount(pos, "tbm:coke")
+	local cobblecount = tbm.getstackcount(pos, "default:cobble")
 	local torchcount = tbm.getstackcount(pos, "default:torch")
 	local railcount = tbm.getstackcount(pos, "default:rail")
 	-- Current metadata
@@ -345,9 +343,9 @@ tbm.drill = function(pos)
 	end
 	-- check fuel, if below 1, grab a coal if coal > 0 else, do nothing
 	if fuel == 0 then
-		if coalcount > 0 then
+		if cokecount > 0 then
 			fuel = 3
-			coalcount = coalcount - 1
+			cokecount = cokecount - 1
 		end
 	end
 	-- only work if there is fuel, three cobblestones, one track and one torch
@@ -376,8 +374,8 @@ tbm.drill = function(pos)
 		-- create inventory and other meta data at the new position
 		tbm.placetbm(newpos, tostring(fuel))
 		-- move tbm stack to the new position
-		tbm.setstackcount(newpos, "tbm:coke", coalcount)
-		tbm.setstackcount(newpos, "tbm:floor", cobblecount)
+		tbm.setstackcount(newpos, "tbm:coke", cokecount)
+		tbm.setstackcount(newpos, "default:cobble", cobblecount)
 		tbm.setstackcount(newpos, "default:torch", torchcount)
 		tbm.setstackcount(newpos, "default:rail", railcount)
 		
@@ -390,6 +388,8 @@ tbm.drill = function(pos)
 	else
 		meta:set_string("fuel", "0")
 	end
+	--play sound
+         minetest.sound_play("tbm", {pos = pos, gain = 1.0, max_hear_distance = 10,})
 end
 
 minetest.register_node("tbm:metal_plate", {
@@ -406,18 +406,6 @@ minetest.register_node("tbm:metal_plate", {
 		type = "wallmounted",
 	},
 	drop = "tbm:metal_plate",
-	groups = {cracky=2},
-})
-
-minetest.register_node("tbm:floor", {
-	drawtype = "normal",
-	description = "TBM Floor Blocks",
-         tiles = {"tbm_floor.png"},
-	inventory_image = "tbm_floor.png",
-	wield_image = "tbm_floor.png",
-	paramtype = "light",
-	is_ground_content = false,
-	drop = "tbm:floor",
 	groups = {cracky=2},
 })
 
@@ -474,17 +462,21 @@ minetest.register_craft({
 })
 
 minetest.register_craft({
-    output = 'tbm:floor 16',
-    recipe = {
-        {'tbm:metal_plate', 'tbm:metal_plate'},
-        {'tbm:metal_plate', 'tbm:metal_plate'},
-    }
+	type = "cooking",
+	output = "tbm:coke",
+	recipe = "default:coal_lump",
 })
 
 minetest.register_craft({
 	type = "cooking",
 	output = "tbm:coke",
-	recipe = "default:coal_lump",
+	recipe = "technic:coal_dust",
+})
+
+minetest.register_craft({
+	type = "fuel",
+	recipe = "tbm:coke",
+	burntime = 80,
 })
 
 -- Alternate recipes in case the Steel mod is installed.
@@ -505,7 +497,7 @@ minetest.register_craft({
     }
 })
 
--- These three allow crafting TBM components from the Steel mod's soft steel plate
+-- These two allow crafting TBM components from the Steel mod's soft steel plate
 
 minetest.register_craft({
     output = 'tbm:engine',
@@ -513,14 +505,6 @@ minetest.register_craft({
         {'steel:plate_soft', 'steel:plate_soft', 'steel:plate_soft'},
         {'steel:plate_soft', 'default:furnace', 'steel:plate_soft'},
         {'steel:plate_soft', 'steel:plate_soft', 'steel:plate_soft'},
-    }
-})
-
-minetest.register_craft({
-    output = 'tbm:floor 16',
-    recipe = {
-        {'steel:plate_soft', 'steel:plate_soft'},
-        {'steel:plate_soft', 'steel:plate_soft'},
     }
 })
 
