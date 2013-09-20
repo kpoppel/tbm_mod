@@ -233,16 +233,19 @@ tbm.breakstones = function(pos, facing)
 			bpos.z = pos.z + block[i][j].Z
 			local current = minetest.get_node(bpos)
 			if current.name ~= 'air' and current.name ~= 'ignore' then 
-				if current.name == "default:mese" then
-					tbm.dropitem(pos, "default:mese")
+				-- If there is no "drop" field on definition table, take the name of the block
+				if ItemStack({name=current.name}):get_definition().drop == nil then
+					local dropped = ItemStack({name=current.name}):get_name()
+					tbm.dropitem(pos, dropped)
 				else
 					local dropped = ItemStack({name=current.name}):get_definition().drop
-					if dropped ~= "default:cobble" then
-						tbm.dropitem(pos, dropped)
-					else
-						tbm.dropitem(pos, dropped)
-						--cobbleresult = cobbleresult + 1
-					end
+					tbm.dropitem(pos, dropped)
+				end
+				if dropped ~= "default:cobble" then
+					tbm.dropitem(pos, dropped)
+				else
+					tbm.dropitem(pos, dropped)
+					--cobbleresult = cobbleresult + 1
 				end
 				minetest.dig_node(bpos)
 			end
