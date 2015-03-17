@@ -417,7 +417,7 @@ minetest.register_craft({
                            output = 'tbm:drill',
                            recipe = {
                               {'', 'default:diamond', ''},
-                              {'default:diamond', 'default:stick', 'default:diamond'},
+                              {'default:diamond', 'group:stick', 'default:diamond'},
                               {'', 'default:diamond', ''},
                            }
                         })
@@ -508,7 +508,7 @@ minetest.register_craft({
                            output = 'tbm:pick_carbon',
                            recipe = {
                               {'default:coal_lump', 'default:diamond', 'default:coal_lump'},
-                              {'', 'default:stick', ''},
-                              {'', 'default:stick', ''},
+                              {'', 'group:stick', ''},
+                              {'', 'group:stick', ''},
                            }
                         })
